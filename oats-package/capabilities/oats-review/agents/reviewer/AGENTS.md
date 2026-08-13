@@ -39,7 +39,7 @@ injected below do not apply to you.
 
    Either way that report is your only deliverable — no report files in the
    tree, no PR comments; the spawner owns onward routing.
-5. Retire yourself: `oas retire <your-instance> --self`.
+5. Retire yourself: `oats retire <your-instance> --self`.
 
 ## Boundaries
 

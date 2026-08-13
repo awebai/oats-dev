@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-// Deterministic catalog-selector replacement gate for oas.dev dependencies.
+// Deterministic catalog-selector replacement gate for oats.dev dependencies.
 //
-// Pre-publication, oas.dev depends on its three sibling official packages by
+// Pre-publication, oats.dev depends on its three sibling official packages by
 // LOCAL package-root-relative path pointing at each sibling repo's DISTRIBUTED
-// payload root (`oas-package/`), so a co-located consumer probe resolves a real
+// payload root (`oats-package/`), so a co-located consumer probe resolves a real
 // dependency closure without any published catalog entry (the engine supports
 // relative-path dependencies between co-located local packages).
 //
@@ -11,43 +11,43 @@
 // selector. That replacement is FULLY DETERMINISTIC — this module IS the
 // mapping and the gate, never a free-form TODO placeholder in the manifest:
 //
-//   ../../oas-okf/oas-package        ->  oas.okf@<release version>
-//   ../../oas-aweb/oas-package       ->  oas.aweb@<release version>
-//   ../../oas-authoring/oas-package  ->  oas.authoring@<release version>
+//   ../../oats-okf/oats-package        ->  oats.okf@<release version>
+//   ../../oats-aweb/oats-package       ->  oats.aweb@<release version>
+//   ../../oats-authoring/oats-package  ->  oats.authoring@<release version>
 //
 // The catalog version is read deterministically from each sibling package's own
-// oas-package.json release version, so `--apply` produces exactly the selectors
+// oats-package.json release version, so `--apply` produces exactly the selectors
 // the released sibling packages define — no human guess, no placeholder.
 //
 // Usage (run from the package root):
 //   node scripts/catalog-selectors.mjs --check   # verify pre-publication local form + resolvable release siblings
 //   node scripts/catalog-selectors.mjs --print   # print the deterministic catalog selectors
-//   node scripts/catalog-selectors.mjs --apply   # rewrite oas-package.json to catalog form (publication only)
+//   node scripts/catalog-selectors.mjs --apply   # rewrite oats-package.json to catalog form (publication only)
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-// The package root (`oas-package/`) is where oas-package.json lives; this dev
+// The package root (`oats-package/`) is where oats-package.json lives; this dev
 // tool sits in the sibling repo-level `scripts/` dir, so the payload root is
-// `../oas-package` from here. Sibling deps are resolved relative to it.
-export const ROOT = resolve(fileURLToPath(new URL("../oas-package", import.meta.url)));
+// `../oats-package` from here. Sibling deps are resolved relative to it.
+export const ROOT = resolve(fileURLToPath(new URL("../oats-package", import.meta.url)));
 
-// Ordered, exhaustive local-form -> catalog-id mapping: oas.dev's exact
+// Ordered, exhaustive local-form -> catalog-id mapping: oats.dev's exact
 // pre-publication dependency list, in order. Each local path points at the
 // sibling repo's DISTRIBUTED payload root. Jira and Linear are deliberately
-// absent — they remain adopter-selected, never oas.dev dependencies.
+// absent — they remain adopter-selected, never oats.dev dependencies.
 export const SELECTOR_MAP = [
-  { local: "../../oas-okf/oas-package", catalog: "oas.okf", version: "1.4.1" },
-  { local: "../../oas-aweb/oas-package", catalog: "oas.aweb", version: "1.8.0" },
-  { local: "../../oas-authoring/oas-package", catalog: "oas.authoring", version: "1.0.0" },
+  { local: "../../oats-okf/oats-package", catalog: "oats.okf", version: "1.4.1" },
+  { local: "../../oats-aweb/oats-package", catalog: "oats.aweb", version: "1.8.0" },
+  { local: "../../oats-authoring/oats-package", catalog: "oats.authoring", version: "1.0.0" },
 ];
 
 export const LOCAL_FORM = SELECTOR_MAP.map((e) => e.local);
 export const PUBLISHED_FORM = SELECTOR_MAP.map((e) => `${e.catalog}@v${e.version}`);
 
 function readManifest(dir) {
-  return JSON.parse(readFileSync(join(dir, "oas-package.json"), "utf8"));
+  return JSON.parse(readFileSync(join(dir, "oats-package.json"), "utf8"));
 }
 
 /** Deterministic catalog selector for one entry; the version is read from the
@@ -74,7 +74,7 @@ export function catalogSelectors(opts = {}) {
  * this is what makes the catalog replacement deterministic rather than a guess. */
 export function checkLocalForm({ root = ROOT } = {}) {
   const deps = readManifest(root).dependencies;
-  if (!Array.isArray(deps)) throw new Error("oas-package.json has no dependencies array");
+  if (!Array.isArray(deps)) throw new Error("oats-package.json has no dependencies array");
   const same = deps.length === LOCAL_FORM.length && deps.every((d, i) => d === LOCAL_FORM[i]);
   if (!same)
     throw new Error(
@@ -84,18 +84,18 @@ export function checkLocalForm({ root = ROOT } = {}) {
   return { deps, selectors };
 }
 
-/** Rewrite oas-package.json dependencies to the deterministic catalog form.
+/** Rewrite oats-package.json dependencies to the deterministic catalog form.
  * Publication-only; pre-publication CI keeps the local form. */
 export function checkPublishedForm({ root = ROOT } = {}) {
   const deps = readManifest(root).dependencies;
-  if (!Array.isArray(deps)) throw new Error("oas-package.json has no dependencies array");
+  if (!Array.isArray(deps)) throw new Error("oats-package.json has no dependencies array");
   const same = deps.length === PUBLISHED_FORM.length && deps.every((d, i) => d === PUBLISHED_FORM[i]);
   if (!same) throw new Error(`dependencies are not the expected published form.\n  found: ${JSON.stringify(deps)}\n  want:  ${JSON.stringify(PUBLISHED_FORM)}`);
   return { deps, selectors: catalogSelectors({ root, verifySibling: false }) };
 }
 
 export function applyCatalogForm({ root = ROOT, write = true } = {}) {
-  const path = join(root, "oas-package.json");
+  const path = join(root, "oats-package.json");
   const manifest = JSON.parse(readFileSync(path, "utf8"));
   const published = Array.isArray(manifest.dependencies) && manifest.dependencies.length === PUBLISHED_FORM.length
     && manifest.dependencies.every((d, i) => d === PUBLISHED_FORM[i]);

@@ -4,12 +4,12 @@ capabilities:
     knowledge: none
     messaging: none
   additive:
-    oas.authoring:
+    oats.authoring:
       from: installed
       agent-types:
         framework-authors: false
         package-maintainers: false
-    oas.review:
+    oats.review:
       from: installed
       agent-types:
         developers: false

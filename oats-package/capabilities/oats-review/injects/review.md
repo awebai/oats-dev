@@ -1,4 +1,4 @@
-## Review discipline: oas.review
+## Review discipline: oats.review
 
 **After every substantive commit, launch the reviewer** — and, when a knowledge
 layer is active, run its promotion step alongside (whatever command that layer
@@ -6,7 +6,7 @@ documents; omit the line entirely if you have no knowledge layer):
 
 ```bash
 <your knowledge layer's promotion command>   # omit when no knowledge layer is active
-oas spawn reviewer --work attached --work-dir "$PWD/work" \
+oats spawn reviewer --work attached --work-dir "$PWD/work" \
   --purpose "<short-sha>" \
   --task "Review commit <sha> on branch <branch>. Report to <your-instance> per your operating loop."
 ```
@@ -27,17 +27,17 @@ oas spawn reviewer --work attached --work-dir "$PWD/work" \
 - Skip only for trivial mechanical commits (typo, lockfile refresh) — when
   in doubt, review.
 
-## Delivery discipline (all OAS developers)
+## Delivery discipline (all OATS developers)
 
 - You work in a dedicated worktree on your own branch. **Main only moves
   through PRs** — never push to main.
 - **Single-developer features**: branch from main (`agents/<instance>` or as
   tasked), open the PR yourself (`gh pr create`) when review-clean, then
   **spawn a fresh maintainer instance for it** — one per PR, always, even if
-  another oas-expert instance is live:
+  another oats-expert instance is live:
 
   ```bash
-  oas spawn oas-expert --purpose "pr<n>" --relation parent --relative-to "$OAS_INSTANCE" \
+  oats spawn oats-expert --purpose "pr<n>" --relation parent --relative-to "$OATS_INSTANCE" \
     --task "Maintainer review of PR #<n>: run your pr-review gates. You own this PR to its terminal outcome — on RETURN stay alive and idle for my fix notice, re-review, repeat; on merge/close record the delivery in your stewardship knowledge and retire yourself. Report verdicts to <your-instance>."
   ```
 

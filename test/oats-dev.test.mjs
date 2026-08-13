@@ -4,8 +4,8 @@ import { join, resolve } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
-const ROOT = resolve(fileURLToPath(new URL("../oas-package", import.meta.url)));
-const CAPABILITY = join(ROOT, "capabilities", "oas-review");
+const ROOT = resolve(fileURLToPath(new URL("../oats-package", import.meta.url)));
+const CAPABILITY = join(ROOT, "capabilities", "oats-review");
 const read = (...parts) => readFileSync(join(CAPABILITY, ...parts), "utf8");
 
 test("reviewer soul is an ephemeral attached capability agent", () => {
@@ -28,7 +28,7 @@ test("reviewer operating loop requires both packaged review skills", () => {
   assert.match(instructions, /parentInstance/);
   assert.match(instructions, /If a messaging layer is active/);
   assert.doesNotMatch(instructions, /aw mail|aweb/);
-  assert.match(instructions, /oas retire <your-instance> --self/);
+  assert.match(instructions, /oats retire <your-instance> --self/);
   assert.match(instructions, /Never edit the work tree/);
 });
 
@@ -46,6 +46,6 @@ test("developer injection preserves paired harvest and reviewer discipline", () 
   // Knowledge promotion is a layer-agnostic placeholder, not a named command.
   assert.match(injection, /<your knowledge layer's promotion command>/);
   assert.doesNotMatch(injection, /aw mail|aweb/);
-  assert.match(injection, /oas spawn reviewer --work attached/);
+  assert.match(injection, /oats spawn reviewer --work attached/);
   assert.match(injection, /Multi-developer features/);
 });

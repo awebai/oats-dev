@@ -5,14 +5,14 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 const REPO = resolve(fileURLToPath(new URL("..", import.meta.url)));
-const ROOT = join(REPO, "oas-package");
+const ROOT = join(REPO, "oats-package");
 const read = (...p) => readFileSync(join(ROOT, ...p), "utf8");
 const readRepo = (...p) => readFileSync(join(REPO, ...p), "utf8");
 
 // Minimal indentation-based YAML subset parser — enough for these config files
 // (nested maps, `key: value`, `key:` maps, `#` comment lines). No lists, no
 // multiline scalars. Keeps the package test dependency-free and portable into
-// the standalone oas-dev repository.
+// the standalone oats-dev repository.
 function parseYaml(text) {
   const root = {};
   const stack = [{ indent: -1, obj: root }];
@@ -58,17 +58,17 @@ function effective(cfg, family) {
     knowledge: layers.knowledge?.capability || "none",
     messaging: layers.messaging?.capability || "none",
     tasks: typeof layers.tasks === "string" ? layers.tasks : (layers.tasks?.capability || "present"),
-    authoring: assigned("oas.authoring"),
-    review: assigned("oas.review"),
+    authoring: assigned("oats.authoring"),
+    review: assigned("oats.review"),
     worktreeMode: !!(cfg["work-modes"] && "worktree" in cfg["work-modes"]),
     frameworkInjection: (cfg["agents-md-injection"] || {}).framework || null,
   };
 }
 
-const legacy = parseYaml(readRepo("test", "fixtures", "legacy-framework-oas-config.yaml"));
-const profile = parseYaml(read("configs", "default", "oas-config.yaml"));
-const child = parseYaml(readRepo("test", "fixtures", "framework-child-oas-config.yaml"));
-// New resolution inside oas/: adopted root profile, with the child repo config
+const legacy = parseYaml(readRepo("test", "fixtures", "legacy-framework-oats-config.yaml"));
+const profile = parseYaml(read("configs", "default", "oats-config.yaml"));
+const child = parseYaml(readRepo("test", "fixtures", "framework-child-oats-config.yaml"));
+// New resolution inside oats/: adopted root profile, with the child repo config
 // as the closer override.
 const adopted = deepMerge(profile, child);
 
@@ -78,7 +78,7 @@ test("parity: existing families resolve equivalently under adopted root + child 
     const now = effective(adopted, family);
     // Preserved exactly: knowledge=OKF, tasks=none, authoring→framework-authors,
     // review→developers, worktree mode, and the framework-workspace injection.
-    assert.equal(now.knowledge, "oas.okf", `${family} knowledge`);
+    assert.equal(now.knowledge, "oats.okf", `${family} knowledge`);
     assert.equal(now.knowledge, was.knowledge, `${family} knowledge parity`);
     assert.equal(now.tasks, "none", `${family} tasks`);
     assert.equal(now.tasks, was.tasks, `${family} tasks parity`);
@@ -97,11 +97,11 @@ test("parity: existing families resolve equivalently under adopted root + child 
   assert.equal(effective(adopted, "developers").authoring, false);
 });
 
-test("preserved: the established team name oas-framework, with no machine state in the shipped profile", () => {
+test("preserved: the established team name awebai, with no machine state in the shipped profile", () => {
   // Founder ruling: the non-Git workspace changes the filesystem/config scope,
   // not the team identity. Name and team name are PRESERVED, not renamed.
-  assert.equal(profile.name, "oas-framework");
-  assert.equal(profile.team.name, "oas-framework");
+  assert.equal(profile.name, "awebai");
+  assert.equal(profile.team.name, "awebai");
   assert.equal(profile.name, legacy.name, "team name preserved from the legacy config");
   assert.equal(profile.team.name, legacy.team.name, "team name preserved");
   // Only the deployment-specific team id (and account/host paths) is substituted out.
@@ -110,8 +110,8 @@ test("preserved: the established team name oas-framework, with no machine state 
 
 test("delta: messaging is explicit aweb in the portable root (legacy inherited it from the outer laptop config)", () => {
   assert.equal(effective(legacy, "developers").messaging, "none", "legacy config declares no messaging (came from the outer config)");
-  assert.equal(effective(adopted, "developers").messaging, "oas.aweb", "portable root declares aweb explicitly");
-  assert.equal(effective(adopted, "framework-authors").messaging, "oas.aweb");
+  assert.equal(effective(adopted, "developers").messaging, "oats.aweb", "portable root declares aweb explicitly");
+  assert.equal(effective(adopted, "framework-authors").messaging, "oats.aweb");
 });
 
 test("delta: package-maintainers family added and assigned to authoring + review", () => {
@@ -125,7 +125,7 @@ test("delta: package-maintainers family added and assigned to authoring + review
   // alone (no framework child override in a sibling package repo).
   assert.equal(effective(profile, "package-maintainers").frameworkInjection, null,
     "the framework injection must not reach package experts in sibling repos");
-  // Inside oas/ itself, the same maintainer DOES get it via the child config.
+  // Inside oats/ itself, the same maintainer DOES get it via the child config.
   assert.equal(effective(adopted, "package-maintainers").frameworkInjection, "injects/framework-workspace.md");
 });
 
@@ -134,13 +134,13 @@ test("layering: the framework-workspace injection is closer (child repo), never 
   // expert and reference a path that cannot resolve in a non-Git root.
   assert.equal("agents-md-injection" in profile, false, "root profile carries no framework-specific injection");
   assert.equal((child["agents-md-injection"] || {}).framework, "injects/framework-workspace.md",
-    "the child oas/ repo config carries it");
+    "the child oats/ repo config carries it");
 });
 
-test("delta: released package provenance flows through oas.dev catalog selectors, not framework-bundled copies", () => {
-  const pkg = JSON.parse(read("oas-package.json"));
-  assert.deepEqual(pkg.dependencies, ["oas.okf@v1.4.1", "oas.aweb@v1.8.0", "oas.authoring@v1.0.0"]);
+test("delta: released package provenance flows through oats.dev catalog selectors, not framework-bundled copies", () => {
+  const pkg = JSON.parse(read("oats-package.json"));
+  assert.deepEqual(pkg.dependencies, ["oats.okf@v1.4.1", "oats.aweb@v1.8.0", "oats.authoring@v1.0.0"]);
   // The profile resolves providers `from: installed` — i.e. from the workspace's
   // installed released closure, not framework-bundled capabilities.
-  assert.match(read("configs", "default", "oas-config.yaml"), /from: installed/);
+  assert.match(read("configs", "default", "oats-config.yaml"), /from: installed/);
 });
