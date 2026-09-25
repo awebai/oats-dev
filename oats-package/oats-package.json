@@ -1,23 +1,11 @@
 {
   "package": "oats.dev",
-  "version": "1.0.0",
-  "description": "OATS-project development policy: the oats.review discipline plus a reference workspace profile for developing OATS itself.",
+  "version": "1.0.1",
+  "description": "OATS-project development policy: the oats.review discipline (an ephemeral reviewer plus code and security review skills).",
   "compatibility": {
-    "oats": ">=0.19.0"
+    "oats": ">=0.26.0"
   },
   "capabilities": [
     "capabilities/oats-review"
-  ],
-  "configs": {
-    "default": {
-      "path": "configs/default/oats-config.yaml",
-      "description": "OATS development workspace root",
-      "default": true
-    }
-  },
-  "dependencies": [
-    "oats.okf@v1.4.1",
-    "oats.aweb@v1.8.0",
-    "oats.authoring@v1.0.0"
   ]
 }

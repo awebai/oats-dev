@@ -1,9 +1,8 @@
 # Schema status
 
-- **Corrected schemas verified**: all three vendored schemas are byte-identical to the canonical package-engine reference now merged to main (reviewed head `af49fd542e7190d1da72a6e0b9214036b59cbd7c`; package-engine merge `612b4f8c48efb63be7435df3d4473feba7b25abf`; package-config merge `a0366349915f151b6f6897cb682b7258f9fc1d79`); CI validates package and capability manifests against them.
-- **Dependency selectors published (no placeholders)**: `oats.dev` pins `oats.okf@v1.4.1`, `oats.aweb@v1.8.0`, and `oats.authoring@v1.0.0`, matching the released sibling tags. `scripts/catalog-selectors.mjs` retains the audited local→published mapping and accepts the exact published form. Jira/Linear remain adopter-selected and are never dependencies.
-- **Released-kernel fixture**: run profile adoption against OATS 0.19.x with a catalog containing the immutable sibling tags, then re-run through the kernel-bundled catalog patch. Lock/probe metadata reports distribution `oats.dev@1.0.0` and exported capability `oats.review@1.2.0` separately.
-- **End-to-end non-Git consumer acceptance test**: `scripts/consumer-acceptance.mjs` runs the complete package-native setup against a real kernel — `oats init --package <oats.dev selector>` (acquire + exact-lock the closure `oats.dev`+`oats.okf`+`oats.aweb`+`oats.authoring`, validate the profile against those providers, snapshot the COMPLETE profile as the root config) → assert the v2 lock graph + per-package integrity + recorded dependencies → bare `oats install` (restore/reconcile + host/runtime requirement consent, installing nothing) → assert expected providers/targets via `oats doctor --json` → nested `oats/` child override → cutover (`legacyLockFiles` empty, no nonempty `migrationResidue`). It **fails closed** (exit 2, release-pending) on a kernel below the `>=0.19.0` floor rather than faking a pass. Its kernel-free structural half (`test/oats-dev-consumer.test.mjs`) mirrors the engine's `validateProfile` (supplied = own capabilities ∪ dependency closure; layer agreement) and runs today.
-- **Package-local profile method**: until the released resolver fixture is available, tests assert the complete profile shape, required family-to-capability matrix, forbidden deployment-specific fields, resolved-config parity with the framework repo (`test/oats-dev-parity.test.mjs` + `PARITY.md`), and a closer child-repository fixture used only for repo-specific policy.
-
-The package tag may publish after the external released-kernel catalog fixture passes; the default short-id path becomes available when the kernel-bundled catalog patch ships.
+- `schemas/oats-package.schema.json` and `schemas/capability-manifest.schema.json`
+  are byte copies of `docs/` in [awebai/oats](https://github.com/awebai/oats) at
+  `bdd7e55e1b798a97b8b5486001d7c17e522792a7`. CI (`npm test` → `scripts/validate-manifests.mjs`)
+  validates the package and capability manifests against them.
+- No lock schema is vendored: this repository writes no `oats-lock.json`. A
+  consuming workspace's lock is the kernel's (`docs/oats-lock-v3.schema.json`).
