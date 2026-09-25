@@ -63,11 +63,10 @@ const capabilitySchema = readJson(capabilitySchemaPath);
 
 if (packageManifest && packageSchema) validateSchema(packageManifest, packageSchema, "oats-package.json");
 
-const configs = packageManifest?.configs && typeof packageManifest.configs === "object" ? packageManifest.configs : {};
-const defaultConfigs = Object.entries(configs).filter(([, spec]) => spec?.default === true);
-if (defaultConfigs.length > 1) report("oats-package.json.configs", "at most one config profile may be marked default");
-for (const [name, spec] of Object.entries(configs)) {
-  if (spec?.path) safeResource(root, spec.path, `oats-package.json.configs.${name}.path`, "config profile");
+// Config templates (and their `oats init --package` adoption) are gone in OATS 0.26:
+// a workspace declares packages and souls select capabilities; nothing adopts a config.
+for (const key of ["configs", "configTemplates"]) {
+  if (packageManifest && Object.hasOwn(packageManifest, key)) report(`oats-package.json.${key}`, "config templates were removed in OATS 0.26; a package ships capabilities only");
 }
 
 const declaredCapabilities = Array.isArray(packageManifest?.capabilities) ? packageManifest.capabilities : [];
@@ -104,9 +103,10 @@ for (const [index, capabilityDir] of declaredCapabilities.entries()) {
 if (capabilities.length === 1 && packageManifest) {
   const capability = capabilities[0];
   if (packageManifest.package === "oats.dev") {
-    if (packageManifest.version !== "1.0.0") report("oats-package.json.version", "oats.dev distribution must start at 1.0.0");
-    if (capability.capability !== "oats.review" || capability.version !== "1.2.0") {
-      report("oats-package.json.capabilities[0]", "oats.dev must export capability oats.review@1.2.0");
+    const npmVersion = readJson(join(repoRoot, "package.json"))?.version;
+    if (packageManifest.version !== npmVersion) report("oats-package.json.version", `oats.dev distribution version ${packageManifest.version} must equal package.json ${npmVersion}`);
+    if (capability.capability !== "oats.review") {
+      report("oats-package.json.capabilities[0]", "oats.dev must export capability oats.review");
     }
   } else {
     if (packageManifest.package !== capability.capability) report("oats-package.json.package", "single-capability official package ID must equal its capability ID");

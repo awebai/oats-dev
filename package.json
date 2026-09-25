@@ -1,7 +1,7 @@
 {
   "name": "@awebai/oats-dev",
-  "version": "1.0.0",
-  "description": "OATS-project development policy, review discipline, and reference workspace profile.",
+  "version": "1.0.1",
+  "description": "OATS-project development policy and review discipline.",
   "license": "MIT",
   "type": "module",
   "private": true,

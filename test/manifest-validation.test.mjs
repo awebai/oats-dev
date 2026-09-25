@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(fileURLToPath(new URL("..", import.meta.url)));
 
-function runFixture(t, capabilityDirs) {
+function runFixture(t, capabilityDirs, extra = {}) {
   const fixture = mkdtempSync(join(tmpdir(), "oats-manifest-negative-"));
   t.after(() => rmSync(fixture, { recursive: true, force: true }));
   mkdirSync(join(fixture, "scripts"), { recursive: true });
@@ -24,6 +24,7 @@ function runFixture(t, capabilityDirs) {
     description: "Negative manifest-validation fixture.",
     compatibility: { oats: ">=0.6.2" },
     ...(capabilityDirs === undefined ? {} : { capabilities: capabilityDirs }),
+    ...extra,
   };
   writeFileSync(join(fixture, "oats-package", "oats-package.json"), JSON.stringify(packageManifest, null, 2) + "\n");
 
@@ -55,4 +56,12 @@ test("validator rejects extra capability enumerations", (t) => {
   const result = runFixture(t, ["capability-one", "capability-two"]);
   assert.equal(result.status, 1);
   assert.match(result.stderr, /must enumerate exactly one capability directory \(found 2\)/);
+});
+
+test("validator refuses config templates (removed in OATS 0.26)", (t) => {
+  for (const key of ["configs", "configTemplates"]) {
+    const result = runFixture(t, ["capability-one"], { [key]: { default: { path: "config-templates/default/oats-config.yaml" } } });
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, new RegExp(`oats-package\\.json\\.${key}: config templates were removed in OATS 0\\.26`));
+  }
 });
