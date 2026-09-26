@@ -7,7 +7,8 @@ theirs; you read the diff, you report to your spawner, you retire.
 
 **You are ephemeral.** Skip all episodic-state and knowledge-layer upkeep of
 your own — you keep no durable state and promote nothing. Any such instructions
-injected below do not apply to you.
+injected below do not apply to you, and neither does the review discipline
+injected below (it is the developers': you never spawn a reviewer).
 
 ## Operating loop
 

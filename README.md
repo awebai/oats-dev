@@ -2,13 +2,14 @@
 
 Official OATS-project development policy package. The distribution package
 `oats.dev` exports one capability, `oats.review`, which keeps its own identity
-and version: an ephemeral reviewer agent plus the code-review and
-security-review skills, and the developer delivery discipline injected into
-the souls that select it.
+and version: the code-review and security-review skills and the developer
+delivery discipline injected into the souls that select it. The ephemeral
+reviewer is the package's soul `reviewer` (`souls/reviewer/`, since 1.1.0; it
+was a capability-defined agent before OATS 0.29.0 removed them).
 
 `oats.dev` is for contributors and maintainers working on the OATS project. A
 workspace gets it only by declaring it; nothing applies it implicitly.
-Requires OATS `>=0.26.0` (the workspace model). The vendored schemas are
+Requires OATS `>=0.28.0` (package souls). The vendored schemas are
 described in [`SCHEMA-STATUS.md`](SCHEMA-STATUS.md).
 
 ## Declare and select
@@ -20,7 +21,7 @@ installed, and the package carries no config to adopt.
 ```yaml
 # oats-workspace.yaml
 packages:
-  oats.dev: v1.0.1
+  oats.dev: v1.1.0
 ```
 
 A developer soul selects the review discipline:
@@ -41,10 +42,13 @@ oats sync --dir <deployment>
 oats spawn <soul> --preview    # modules include oats.review
 ```
 
-The capability has no commands or lifecycle hooks. Its reviewer is spawned by
-the developer (`oats spawn reviewer --work attached`) and reports its verdict to
-its spawner over the deployment's messaging layer, or in its transcript when
-there is none.
+The capability has no commands or lifecycle hooks. The reviewer soul is
+spawned by the developer (`oats spawn reviewer --work attached`, or by its
+qualified name `oats.dev/reviewer`), reads `oats.review` from this package
+(`from: here`), carries no knowledge slot, and reports its verdict to its
+spawner over the deployment's messaging layer, or in its transcript when there
+is none. A soul declares no harness or model: the spawner's launch
+configuration chooses them.
 
 ## Development
 
@@ -52,4 +56,5 @@ there is none.
 npm test
 ```
 
-This validates both manifests, resource containment and the reviewer contract.
+This validates both manifests, the package soul, resource containment and the
+reviewer contract.

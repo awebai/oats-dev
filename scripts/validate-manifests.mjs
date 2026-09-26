@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { existsSync, readFileSync, realpathSync } from "node:fs";
+import { existsSync, lstatSync, readFileSync, readlinkSync, realpathSync } from "node:fs";
 import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -87,7 +87,8 @@ for (const [index, capabilityDir] of declaredCapabilities.entries()) {
   const capabilityRoot = dirname(manifestPath);
   for (const [resourceIndex, resource] of (manifest.skills || []).entries()) safeResource(capabilityRoot, resource, `${capabilityDir}/oats.json.skills[${resourceIndex}]`, "skill path");
   if (manifest.inject) safeResource(capabilityRoot, manifest.inject, `${capabilityDir}/oats.json.inject`, "injection path");
-  for (const [agentIndex, agent] of (manifest.agents || []).entries()) safeResource(capabilityRoot, agent, `${capabilityDir}/oats.json.agents[${agentIndex}]`, "agent path");
+  // Capability-defined agents were removed in OATS 0.29.0: an agent ships as a package soul.
+  if (Object.hasOwn(manifest, "agents")) report(`${capabilityDir}/oats.json.agents`, "capability-defined agents were removed in OATS 0.29.0; ship the agent as a package soul (souls/<name>/, listed in oats-package.json souls)");
   // A hook may be a plain "entrypoint args" string or the object form
   // { command, required } (only the spawn hook may set required). Commands are
   // always strings. Reduce either to the executable entrypoint for containment.
@@ -98,6 +99,20 @@ for (const [index, capabilityDir] of declaredCapabilities.entries()) {
   for (const [name, command] of Object.entries(manifest.commands || {})) safeResource(capabilityRoot, entrypoint(command), `${capabilityDir}/oats.json.commands.${name}`, "command entrypoint");
   for (const [event, hook] of Object.entries(manifest.hooks || {})) safeResource(capabilityRoot, entrypoint(hook), `${capabilityDir}/oats.json.hooks.${event}`, "hook entrypoint");
   for (const forbidden of ["global", "agent-types", "souls"]) if (forbidden in manifest) report(`${capabilityDir}/oats.json.${forbidden}`, "deployment targeting belongs to config, not a capability manifest");
+}
+
+// Package souls (OATS 0.28.0): each an ordinary soul directory — soul.yaml, canonical AGENTS.md
+// and the relative CLAUDE.md -> AGENTS.md alias — inside the payload.
+const declaredSouls = Array.isArray(packageManifest?.souls) ? packageManifest.souls : [];
+for (const [index, soulDir] of declaredSouls.entries()) {
+  const at = `oats-package.json.souls[${index}]`;
+  safeResource(root, soulDir, at, "soul directory");
+  if (typeof soulDir !== "string" || isAbsolute(soulDir) || soulDir.split(/[\\/]+/).includes("..")) continue;
+  for (const file of ["soul.yaml", "AGENTS.md"]) if (!existsSync(join(root, soulDir, file))) report(at, `${soulDir} has no ${file}`);
+  const alias = join(root, soulDir, "CLAUDE.md");
+  let link = null;
+  try { link = lstatSync(alias).isSymbolicLink() ? readlinkSync(alias) : null; } catch { link = null; }
+  if (link !== "AGENTS.md") report(at, `${soulDir}/CLAUDE.md must be a relative symlink to AGENTS.md`);
 }
 
 if (capabilities.length === 1 && packageManifest) {

@@ -1,11 +1,14 @@
 {
   "package": "oats.dev",
-  "version": "1.0.1",
-  "description": "OATS-project development policy: the oats.review discipline (an ephemeral reviewer plus code and security review skills).",
+  "version": "1.1.0",
+  "description": "OATS-project development policy: the oats.review discipline (code and security review skills) and the ephemeral `reviewer` package soul.",
   "compatibility": {
-    "oats": ">=0.26.0"
+    "oats": ">=0.28.0"
   },
   "capabilities": [
     "capabilities/oats-review"
+  ],
+  "souls": [
+    "souls/reviewer"
   ]
 }
