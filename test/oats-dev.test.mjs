@@ -35,6 +35,12 @@ test("reviewer operating loop requires both packaged review skills", () => {
   assert.match(instructions, /parentInstance/);
   assert.match(instructions, /If a messaging layer is active/);
   assert.doesNotMatch(instructions, /aw mail|aweb/);
+  // Layer-neutral: no unconditional command of a messaging or knowledge layer, and the
+  // no-layer paragraph itself defines transcript delivery.
+  assert.doesNotMatch(instructions, /\baw\b/i);
+  assert.doesNotMatch(instructions, /\boats okf\b/i);
+  const noLayer = instructions.split(/\n\s*\n/).find((para) => /none is active/i.test(para));
+  assert.ok(noLayer && /print the full report as your final message/i.test(noLayer) && /transcript/i.test(noLayer));
   assert.match(instructions, /oats retire <your-instance> --self/);
   assert.match(instructions, /Never edit the work tree/);
 });
