@@ -65,3 +65,24 @@ test("validator refuses config templates (removed in OATS 0.26)", (t) => {
     assert.match(result.stderr, new RegExp(`oats-package\\.json\\.${key}: config templates were removed in OATS 0\\.26`));
   }
 });
+
+test("validator refuses capability-defined agents (removed in OATS 0.29.0) and names package souls", (t) => {
+  const fixture = mkdtempSync(join(tmpdir(), "oats-manifest-agents-"));
+  t.after(() => rmSync(fixture, { recursive: true, force: true }));
+  for (const dir of ["scripts", "schemas", "oats-package/capabilities/one"]) mkdirSync(join(fixture, dir), { recursive: true });
+  copyFileSync(join(ROOT, "scripts", "validate-manifests.mjs"), join(fixture, "scripts", "validate-manifests.mjs"));
+  // The OATS 0.28 capability schema still lists `agents`; the validator refuses it regardless.
+  writeFileSync(join(fixture, "schemas", "capability-manifest.schema.json"), "{}");
+  writeFileSync(join(fixture, "schemas", "oats-package.schema.json"), "{}");
+  writeFileSync(join(fixture, "oats-package", "oats-package.json"), JSON.stringify({ package: "test.one", version: "1.0.0", description: "x", compatibility: { oats: ">=0.28.0" }, capabilities: ["capabilities/one"] }));
+  writeFileSync(join(fixture, "oats-package", "capabilities", "one", "oats.json"), JSON.stringify({ capability: "test.one", version: "1.0.0", description: "x", compatibility: { oats: ">=0.28.0" }, agents: ["agents/x"] }));
+  const result = spawnSync(process.execPath, [join(fixture, "scripts", "validate-manifests.mjs")], { cwd: fixture, encoding: "utf8" });
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /agents: capability-defined agents were removed in OATS 0\.29\.0; ship the agent as a package soul/);
+});
+
+test("validator requires each package soul to be a complete soul directory with the CLAUDE.md alias", (t) => {
+  const result = runFixture(t, ["capability-one"], { souls: ["souls/missing"] });
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /souls\[0\]: soul directory does not exist: souls\/missing/);
+});

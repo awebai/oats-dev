@@ -1,24 +1,31 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { lstatSync, readFileSync, readlinkSync } from "node:fs";
 import { join, resolve } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(fileURLToPath(new URL("../oats-package", import.meta.url)));
 const CAPABILITY = join(ROOT, "capabilities", "oats-review");
+const SOUL = join(ROOT, "souls", "reviewer");
 const read = (...parts) => readFileSync(join(CAPABILITY, ...parts), "utf8");
+const readSoul = (file) => readFileSync(join(SOUL, file), "utf8");
 
-test("reviewer soul is an ephemeral attached capability agent", () => {
-  const soul = read("agents", "reviewer", "soul.yaml");
+test("the reviewer is this package's soul: ephemeral, no knowledge slot, the review capability from its own package", () => {
+  const pkg = JSON.parse(readFileSync(join(ROOT, "oats-package.json"), "utf8"));
+  assert.deepEqual(pkg.souls, ["souls/reviewer"]);
+  const soul = readSoul("soul.yaml");
+  assert.match(soul, /^schemaVersion: 2$/m);
   assert.match(soul, /^name: reviewer$/m);
-  assert.match(soul, /^kind: capability$/m);
-  assert.match(soul, /^work: attached$/m);
-  assert.match(soul, /^runtime: pi$/m);
-  assert.match(soul, /^model: .+$/m);
+  assert.match(soul, /^work: directory$/m, "spawned --work attached by the developer; a soul declares no attached default");
+  assert.match(soul, /^knowledge: none$/m);
+  assert.match(soul, /^ {2}oats\.review: \{ from: here \}$/m);
+  assert.equal(lstatSync(join(SOUL, "CLAUDE.md")).isSymbolicLink() && readlinkSync(join(SOUL, "CLAUDE.md")), "AGENTS.md");
+  // Capability-defined agents were removed in OATS 0.29.0.
+  assert.equal(Object.hasOwn(JSON.parse(read("oats.json")), "agents"), false);
 });
 
 test("reviewer operating loop requires both packaged review skills", () => {
-  const instructions = read("agents", "reviewer", "AGENTS.md");
+  const instructions = readSoul("AGENTS.md");
   assert.match(instructions, /code-review/);
   assert.match(instructions, /security-review/);
   assert.match(instructions, /Verdict first: `APPROVE`, `APPROVE WITH NITS`, or `NEEDS CHANGES`/);
