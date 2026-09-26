@@ -1,0 +1,12 @@
+schemaVersion: 2
+name: reviewer
+description: Fresh-eyes post-commit reviewer — reviews one commit's diff with the code-review and security-review skills, reports the verdict to its spawner over the deployment's messaging layer (or in its transcript when there is none), and retires. Ephemeral — no memory, no state tracking.
+# Spawned `--work attached` onto the developer's tree (oats.review's inject); a soul declares
+# no attached default, so a bare spawn gets an empty directory.
+work: directory
+# Ephemeral by design: no knowledge slot (no memory protocol, nothing to promote).
+knowledge: none
+# The review skills from this package's own capability (and the developers' review
+# discipline, which is not for this soul).
+capabilities:
+  oats.review: { from: here }
